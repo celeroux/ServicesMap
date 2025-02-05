@@ -57,10 +57,19 @@
     const defaultIconUrl = 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
 
     function initMap() {
+      // Create the map with an initial center (will be overridden by fitBounds)
       map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 45.5116, lng: -66.1194 }, // Default center
-        zoom: 8 // Adjusted zoom level for more detail
+        center: { lat: 46.5, lng: -66.5 },
+        zoom: 8
       });
+
+      // Define approximate bounding box for New Brunswick, Canada
+      const nbBounds = new google.maps.LatLngBounds(
+        new google.maps.LatLng(45.86, -67.30), // Southwest corner
+        new google.maps.LatLng(47.33, -64.45)  // Northeast corner
+      );
+      map.fitBounds(nbBounds);
+
       geocoder = new google.maps.Geocoder();
       infoWindow = new google.maps.InfoWindow();
       loadSheetData();
@@ -106,8 +115,7 @@
     function geocodeAddress(address, category, title, description, website) {
       geocoder.geocode({ 'address': address }, function(results, status) {
         if (status === 'OK') {
-          // Optionally, center the map on the first successful geocode
-          map.setCenter(results[0].geometry.location);
+          // Add the marker without recentering the map
           addMarker(results[0].geometry.location, category, title, description, website);
         } else {
           console.error('Geocode was not successful for the following reason: ' + status);
