@@ -85,7 +85,13 @@
     }
 
     function addMarker(location, title, category) {
-      const iconUrl = categoryIcons[category] || defaultIconUrl;
+      // Normalize category string to remove extra whitespace
+      const normalizedCategory = category.trim();
+      const iconUrl = categoryIcons[normalizedCategory] || defaultIconUrl;
+      
+      // Debug log to verify category values and chosen icon
+      console.log("Adding marker:", title, "Category:", normalizedCategory, "Icon URL:", iconUrl);
+
       new google.maps.Marker({
         position: location,
         map: map,
