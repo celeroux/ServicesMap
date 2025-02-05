@@ -110,8 +110,9 @@
       }
       contentString += `</div>`;
 
-      // Add a click event listener to open the infoWindow
+      // Add a click event listener to open the infoWindow and log the click
       marker.addListener('click', () => {
+        console.log("Marker clicked:", title);
         infoWindow.setContent(contentString);
         infoWindow.open(map, marker);
       });
