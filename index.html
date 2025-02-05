@@ -46,7 +46,7 @@
                     if (rows.length > 0) {
                         rows.forEach((row, index) => {
                             if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
-                                geocodeAddress(row[3]); // Address is third column
+                                geocodeAddress(row[0]); // Assume address is fist
                             }
                         });
                     }
