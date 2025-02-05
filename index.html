@@ -100,13 +100,9 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 46.5, lng: -66.5 },
+        center: { lat: 46.5, lng: -67.1 },
         zoom: 6
       });
-      // Fit the map to approximate bounds for New Brunswick, Canada.
-      const nbBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(45.86, -67.30),
-        new google.maps.LatLng(47.33, -64.45)
       );
       map.fitBounds(nbBounds);
       geocoder = new google.maps.Geocoder();
