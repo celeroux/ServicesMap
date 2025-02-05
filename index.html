@@ -15,6 +15,15 @@
 <body>
     <div id="map"></div>
     <script>
+        const categoryColors = {
+            "Emergency Food Services": 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            "Free Legal Services": 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            "Open Work Permit Support": 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+            "Counseling Services": 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+            "Health Services": 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
+        // Add more categories and colors as needed
+    };
+            
         let map;
         let geocoder;
 
@@ -46,7 +55,10 @@
                     if (rows.length > 0) {
                         rows.forEach((row, index) => {
                             if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
-                                geocodeAddress(row[0]); // Assume address is fist
+                                const address = row[0];
+                                const title = row[2];
+                                const category = row[1]; // Category in column B
+                                geocodeAddress(address, title, category);
                             }
                         });
                     }
@@ -56,7 +68,7 @@
             });
         }
 
-        function geocodeAddress(address) {
+        function geocodeAddress(address, title, category) {
             geocoder.geocode({'address': address}, function(results, status) {
                 if (status === 'OK') {
                     map.setCenter(results[0].geometry.location);
@@ -68,10 +80,12 @@
         }
 
         function addMarker(location, title) {
+            const markerIcon = categoryColors[category] || 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Default to purple if category unknown
             const marker = new google.maps.Marker({
                 position: location,
                 map: map,
-                title: title // Use the title from column C as the marker's title
+                title: title,
+                icon: markerIcon
                 });
         }
     </script>
