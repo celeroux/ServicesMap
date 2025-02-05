@@ -1,93 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Services Map</title>
-    <style>
-        #map {
-            height: 100vh; // Full height of the viewport
-            width: 100%; // Full width of the viewport
-        }
-    </style>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I&callback=initMap" async defer></script>
-    <script src="https://apis.google.com/js/api.js"></script>
-</head>
-<body>
-    <div id="map"></div>
-    <script>
-        const categoryColors = {
-            "Emergency Food Services": 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-            "Free Legal Services": 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-            "Open Work Permit Support": 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-            "Counseling Services": 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
-            "Health Services": 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
+<script>
+    const categoryColors = {
+        "Emergency Food Services": 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        "Free Legal Services": 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+        "Open Work Permit Support": 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        "Counseling Services": 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+        "Health Services": 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
         // Add more categories and colors as needed
     };
-            
-        let map;
-        let geocoder;
 
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 45.5116, lng: -66.1194 }, // Default center of the map
-                zoom: 8 // Default zoom level
-            });
-            geocoder = new google.maps.Geocoder(); // Initialize the geocoder
-            loadSheetData();
-        }
+    let map;
+    let geocoder;
 
-        function loadSheetData() {
-            const apiKey = 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I';
-            const sheetId = '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk';
-            const range = 'Sheet1!A:G';
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 45.5116, lng: -66.1194 }, // Default center of the map
+            zoom: 8 // Default zoom level
+        });
+        geocoder = new google.maps.Geocoder(); // Initialize the geocoder
+        loadSheetData();
+    }
 
-            gapi.load('client', () => {
-                gapi.client.init({
-                    apiKey: apiKey,
-                    discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-                }).then(() => {
-                    return gapi.client.sheets.spreadsheets.values.get({
-                        spreadsheetId: sheetId,
-                        range: range,
+    function loadSheetData() {
+        const apiKey = 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I';
+        const sheetId = '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk';
+        const range = 'Sheet1!A:G';
+
+        gapi.load('client', () => {
+            gapi.client.init({
+                apiKey: apiKey,
+                discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+            }).then(() => {
+                return gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: sheetId,
+                    range: range,
+                });
+            }).then(response => {
+                const rows = response.result.values;
+                if (rows.length > 0) {
+                    rows.forEach((row, index) => {
+                        if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
+                            const address = row[0];
+                            const title = row[2];
+                            const category = row[1]; // Category in column B
+                            geocodeAddress(address, title, category);
+                        }
                     });
-                }).then(response => {
-                    const rows = response.result.values;
-                    if (rows.length > 0) {
-                        rows.forEach((row, index) => {
-                            if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
-                                const address = row[0];
-                                const title = row[2];
-                                const category = row[1]; // Category in column B
-                                geocodeAddress(address, title, category);
-                            }
-                        });
-                    }
-                }, function(response) {
-                    console.error('Error: ' + response.result.error.message);
-                });
-            });
-        }
-
-        function geocodeAddress(address, title, category) {
-            geocoder.geocode({'address': address}, function(results, status) {
-                if (status === 'OK') {
-                    map.setCenter(results[0].geometry.location);
-                    addMarker(results[0].geometry.location, address);
-                } else {
-                    console.error('Geocode was not successful for the following reason: ' + status);
                 }
+            }, function(response) {
+                console.error('Error: ' + response.result.error.message);
             });
-        }
+        });
+    }
 
-        function addMarker(location, title) {
-            const markerIcon = categoryColors[category] || 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Default to purple if category unknown
-            const marker = new google.maps.Marker({
-                position: location,
-                map: map,
-                title: title,
-                icon: markerIcon
-                });
-        }
-    </script>
-</body>
-</html>
+    function geocodeAddress(address, title, category) {
+        geocoder.geocode({'address': address}, function(results, status) {
+            if (status === 'OK') {
+                addMarker(results[0].geometry.location, title, category); // Pass category here
+            } else {
+                console.error('Geocode was not successful for the following reason: ' + status);
+            }
+        });
+    }
+
+    function addMarker(location, title, category) { // Include category as a parameter
+        const markerIcon = categoryColors[category] || 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Default to purple if category unknown
+        const marker = new google.maps.Marker({
+            position: location,
+            map: map,
+            title: title,
+            icon: markerIcon
+        });
+    }
+</script>
