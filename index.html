@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Google Map</title>
+    <title>Services Map</title>
     <style>
         #map {
             height: 100vh; // Full height of the viewport
@@ -20,7 +20,7 @@
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 46.8139, lng: -71.2080 }, // Default center of the map
+                center: { lat: 45.5116, lng: -66.1194 }, // Default center of the map
                 zoom: 8 // Default zoom level
             });
             geocoder = new google.maps.Geocoder(); // Initialize the geocoder
@@ -46,7 +46,7 @@
                     if (rows.length > 0) {
                         rows.forEach((row, index) => {
                             if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
-                                geocodeAddress(row[0]); // Assume the address is in the first column
+                                geocodeAddress(row[3]); // Address is third column
                             }
                         });
                     }
