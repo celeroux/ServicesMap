@@ -14,7 +14,7 @@
 </head>
 <body>
     <div id="map"></div>
-    <script>          
+    <script>
         let map;
         let geocoder;
 
@@ -46,10 +46,7 @@
                     if (rows.length > 0) {
                         rows.forEach((row, index) => {
                             if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
-                                const address = row[0];
-                                const title = row[2];
-                                const category = row[1]; // Category in column B
-                                geocodeAddress(address, title, category);
+                                geocodeAddress(row[0]); // Assume address is fist
                             }
                         });
                     }
@@ -59,7 +56,7 @@
             });
         }
 
-        function geocodeAddress(address, title, category) {
+        function geocodeAddress(address) {
             geocoder.geocode({'address': address}, function(results, status) {
                 if (status === 'OK') {
                     map.setCenter(results[0].geometry.location);
@@ -71,12 +68,10 @@
         }
 
         function addMarker(location, title) {
-            const markerIcon = categoryColors[category] || 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Default to purple if category unknown
             const marker = new google.maps.Marker({
                 position: location,
                 map: map,
-                title: title,
-                icon: markerIcon
+                title: title // Use the title from column C as the marker's title
                 });
         }
     </script>
