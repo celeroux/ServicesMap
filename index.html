@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <title>Services Map</title>
-  <!-- Load Material Icons font for use in our custom SVG markers -->
+  <!-- Load Material Icons in the main document (for any HTML usage) -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     #map {
-      height: 100vh; /* Full height of the viewport */
-      width: 100%;   /* Full width of the viewport */
+      height: 100vh;
+      width: 100%;
     }
-    /* Combined control styling (legend and filter) */
+    /* Combined control (legend + filter) styling */
     #map-control {
       background: white;
       padding: 10px;
       margin: 10px;
       font-family: Arial, sans-serif;
       font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       max-width: 250px;
       overflow: auto;
     }
@@ -45,20 +45,34 @@
     let map, geocoder, infoWindow;
     let markers = [];
 
-    // Define your category mapping using Material Icon ligatures and distinct background colors.
+    /* Define your category mapping.
+       The icon names are as requested:
+       - Emergency Shelter Services: "home"
+       - Free Legal Services: "policy"
+       - Open Work Permit Support: "help_outline" (question mark)
+       - Counseling Services: "tooltip"
+       - Health Services: "emergency"
+       
+       The background colors here are arbitrary and distinct.
+    */
     const categoryIcons = {
-      'Emergency Shelter Services': { iconName: 'home', backgroundColor: '#f44336' },
-      'Free Legal Services':         { iconName: 'policy', backgroundColor: '#2196F3' },
+      'Emergency Shelter Services': { iconName: 'home',         backgroundColor: '#f44336' },
+      'Free Legal Services':         { iconName: 'policy',       backgroundColor: '#2196F3' },
       'Open Work Permit Support':    { iconName: 'help_outline', backgroundColor: '#4CAF50' },
-      'Counseling Services':         { iconName: 'tooltip', backgroundColor: '#FF9800' },
-      'Health Services':             { iconName: 'emergency', backgroundColor: '#9C27B0' }
+      'Counseling Services':         { iconName: 'tooltip',      backgroundColor: '#FF9800' },
+      'Health Services':             { iconName: 'emergency',    backgroundColor: '#9C27B0' }
     };
 
-    // Helper function to generate a custom SVG icon as a data URL.
-    // It creates a 40x40 SVG with a circular background and centered white Material Icon text.
+    /* Helper function to generate a custom SVG marker icon.
+       It inlines a <style> block with an @import so the Material Icons font is (hopefully)
+       loaded within the SVG. Adjust width, height, and font-size as needed.
+    */
     function createCustomIcon(iconName, backgroundColor) {
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+          <style>
+            @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+          </style>
           <circle cx="20" cy="20" r="20" fill="${backgroundColor}" />
           <text x="20" y="27" text-anchor="middle" font-size="20" fill="white" font-family="Material Icons">
             ${iconName}
@@ -69,16 +83,16 @@
     }
 
     function initMap() {
-      // Create the map with an initial center; this will be adjusted by fitBounds.
+      // Create the map; initial center will be adjusted by fitBounds.
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 46.5, lng: -66.5 },
         zoom: 8
       });
-
-      // Define an approximate bounding box for New Brunswick, Canada.
+      
+      // Define approximate bounds for New Brunswick, Canada.
       const nbBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(45.86, -67.30), // Southwest corner
-        new google.maps.LatLng(47.33, -64.45)  // Northeast corner
+        new google.maps.LatLng(45.86, -67.30), // Southwest
+        new google.maps.LatLng(47.33, -64.45)  // Northeast
       );
       map.fitBounds(nbBounds);
 
@@ -88,7 +102,7 @@
       addCombinedControl();
     }
 
-    // Load data from your Google Sheet (assumes columns A–E: Address, Category, Name, Description, Website)
+    // Load data from your Google Sheet (columns: Address, Category, Name, Description, Website)
     function loadSheetData() {
       const apiKey = 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I';
       const sheetId = '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk';
@@ -106,14 +120,14 @@
         }).then(response => {
           const rows = response.result.values;
           if (rows.length > 0) {
-            // Skip the header row and iterate over the data rows.
+            // Skip header and process each row.
             rows.forEach((row, index) => {
               if (index > 0 && row.length >= 5) {
-                const address = row[0];      // Column A: Address
-                const category = row[1];     // Column B: Category
-                const title = row[2];        // Column C: Name
-                const description = row[3];  // Column D: Description
-                const website = row[4];      // Column E: Website
+                const address     = row[0]; // Address
+                const category    = row[1]; // Category
+                const title       = row[2]; // Name
+                const description = row[3]; // Description
+                const website     = row[4]; // Website
                 geocodeAddress(address, category, title, description, website);
               }
             });
@@ -124,7 +138,7 @@
       });
     }
 
-    // Geocode the address and add a marker using the custom icon.
+    // Geocode an address and add a marker.
     function geocodeAddress(address, category, title, description, website) {
       geocoder.geocode({ 'address': address }, (results, status) => {
         if (status === 'OK') {
@@ -135,15 +149,14 @@
       });
     }
 
-    // Add a marker with a custom SVG icon.
+    // Add a marker with a custom icon.
     function addMarker(location, category, title, description, website) {
       const normalizedCategory = category.trim();
       let iconData = categoryIcons[normalizedCategory];
-      // Fallback if the category doesn't match.
       if (!iconData) {
         iconData = { iconName: 'place', backgroundColor: '#FFC107' };
       }
-      
+
       const icon = {
         url: createCustomIcon(iconData.iconName, iconData.backgroundColor),
         scaledSize: new google.maps.Size(40, 40)
@@ -156,11 +169,9 @@
         icon: icon
       });
 
-      // Store the marker with its category for filtering.
       marker.category = normalizedCategory;
       markers.push(marker);
 
-      // Build the content for the infoWindow.
       let contentString = `<div>
         <h3>${title}</h3>
         <p>${description}</p>`;
@@ -175,12 +186,12 @@
       });
     }
 
-    // Create a combined control (legend and filter) for the map.
+    // Create a combined control with a legend and filter options.
     function addCombinedControl() {
       const controlDiv = document.createElement('div');
       controlDiv.id = 'map-control';
 
-      // Legend Section
+      // Legend section.
       const legendDiv = document.createElement('div');
       legendDiv.id = 'legend';
       legendDiv.innerHTML = '<h3>Legend</h3>';
@@ -193,7 +204,7 @@
       }
       controlDiv.appendChild(legendDiv);
 
-      // Filter Section
+      // Filter section.
       const filterDiv = document.createElement('div');
       filterDiv.id = 'filter';
       filterDiv.innerHTML = '<h3>Filter by Category</h3>';
@@ -219,7 +230,7 @@
       map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
     }
 
-    // Update marker visibility based on selected filters.
+    // Filter markers based on selected categories.
     function filterMarkers() {
       const checkboxes = document.querySelectorAll('#filter input[type="checkbox"]');
       const activeCategories = [];
