@@ -8,41 +8,29 @@
       height: 100vh; /* Full height of the viewport */
       width: 100%;   /* Full width of the viewport */
     }
-    /* Legend styling */
-    #legend {
+    /* Combined control styling */
+    #map-control {
       background: white;
       padding: 10px;
       margin: 10px;
       font-family: Arial, sans-serif;
       font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      max-width: 250px;
+      overflow: auto;
     }
-    #legend h3 {
+    #map-control h3 {
       margin-top: 0;
+      font-size: 16px;
     }
-    #legend div {
+    #map-control div {
       margin-bottom: 5px;
     }
-    #legend img {
+    #map-control img {
       vertical-align: middle;
       height: 20px;
       width: 20px;
       margin-right: 8px;
-    }
-    /* Filter styling */
-    #filter {
-      background: white;
-      padding: 10px;
-      margin: 10px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    #filter h3 {
-      margin-top: 0;
-    }
-    #filter div {
-      margin-bottom: 5px;
     }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I&callback=initMap" async defer></script>
@@ -76,8 +64,7 @@
       geocoder = new google.maps.Geocoder();
       infoWindow = new google.maps.InfoWindow();
       loadSheetData();
-      addLegend();
-      addFilter();
+      addCombinedControl();
     }
 
     function loadSheetData() {
@@ -119,7 +106,7 @@
     function geocodeAddress(address, category, title, description, website) {
       geocoder.geocode({ 'address': address }, function(results, status) {
         if (status === 'OK') {
-          // Optionally center the map on the first successful geocode
+          // Optionally, center the map on the first successful geocode
           map.setCenter(results[0].geometry.location);
           addMarker(results[0].geometry.location, category, title, description, website);
         } else {
@@ -160,24 +147,26 @@
       });
     }
 
-    function addLegend() {
-      const legend = document.createElement('div');
-      legend.id = 'legend';
-      legend.innerHTML = '<h3>Legend</h3>';
-      // Build legend items from categoryIcons
+    // Create a combined control for both legend and filtering options.
+    function addCombinedControl() {
+      const controlDiv = document.createElement('div');
+      controlDiv.id = 'map-control';
+
+      // Legend Section
+      const legendDiv = document.createElement('div');
+      legendDiv.id = 'legend';
+      legendDiv.innerHTML = '<h3>Legend</h3>';
       for (const category in categoryIcons) {
         const div = document.createElement('div');
         div.innerHTML = `<img src="${categoryIcons[category]}"> ${category}`;
-        legend.appendChild(div);
+        legendDiv.appendChild(div);
       }
-      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
-    }
+      controlDiv.appendChild(legendDiv);
 
-    function addFilter() {
+      // Filter Section
       const filterDiv = document.createElement('div');
       filterDiv.id = 'filter';
       filterDiv.innerHTML = '<h3>Filter by Category</h3>';
-      // Create a checkbox for each category in categoryIcons
       for (const category in categoryIcons) {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -195,8 +184,10 @@
         container.appendChild(label);
         filterDiv.appendChild(container);
       }
-      // Add the filter control to the map (positioned in the top left)
-      map.controls[google.maps.ControlPosition.TOP_LEFT].push(filterDiv);
+      controlDiv.appendChild(filterDiv);
+
+      // Add the combined control to the map (positioned in the top left)
+      map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
     }
 
     function filterMarkers() {
@@ -211,11 +202,7 @@
 
       // Update marker visibility based on active categories
       markers.forEach(marker => {
-        if (activeCategories.includes(marker.category)) {
-          marker.setVisible(true);
-        } else {
-          marker.setVisible(false);
-        }
+        marker.setVisible(activeCategories.includes(marker.category));
       });
     }
   </script>
