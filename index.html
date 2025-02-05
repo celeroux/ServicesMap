@@ -42,8 +42,15 @@
   <script>
     let map, geocoder, infoWindow;
     let markers = [];
-    
-    /* Category mapping with icon path data and background colors */
+
+    /* Category mapping using SVG path data and background colors.
+       The paths below are approximate and intended for a 24×24 grid.
+       • Emergency Shelter Services ("home")
+       • Free Legal Services ("policy")
+       • Open Work Permit Support ("help_outline")
+       • Counseling Services ("tooltip")
+       • Health Services ("emergency")
+    */
     const categoryIcons = {
       'Emergency Shelter Services': {
         iconPath: 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
@@ -68,13 +75,17 @@
     };
 
     /* Helper function to create a custom SVG icon using path data.
-       The SVG is 40x40 with a circular background and a white icon.
+       The outer SVG is 40×40 pixels with a circle background.
+       A nested SVG (positioned at x=8, y=8 with size 24×24 and viewBox="0 0 24 24")
+       renders the icon, ensuring it is centered.
     */
     function createCustomIconFromPath(iconPath, backgroundColor) {
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
           <circle cx="20" cy="20" r="20" fill="${backgroundColor}" />
-          <path d="${iconPath}" fill="white"/>
+          <svg x="8" y="8" width="24" height="24" viewBox="0 0 24 24">
+            <path d="${iconPath}" fill="white"/>
+          </svg>
         </svg>
       `;
       return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
