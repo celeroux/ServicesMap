@@ -2,52 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Simple Dynamic Google Map</title>
+    <title>Dynamic Google Map</title>
     <style>
         #map {
-            height: 100vh;
-            width: 100%;
+            height: 100vh; // Full height of the viewport
+            width: 100%; // Full width of the viewport
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I&callback=initMap" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
     <div id="map"></div>
-    <script type="text/javascript">
+    <script>
         let map;
+        let geocoder;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 46.8139, lng: -71.2080 },
-                zoom: 8
+                center: { lat: 46.8139, lng: -71.2080 }, // Default center of the map
+                zoom: 8 // Default zoom level
             });
-            loadMarkers();
+            geocoder = new google.maps.Geocoder(); // Initialize the geocoder
+            loadSheetData();
         }
 
-        function loadMarkers() {
-            const script = document.createElement('script');
-            script.src = 'https://sheets.googleapis.com/v4/spreadsheets/1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk/values/Sheet1!A:G?key=AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I';
-            document.getElementsByTagName('head')[0].appendChild(script);
-        }
+        function loadSheetData() {
+            const apiKey = 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I';
+            const sheetId = '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk';
+            const range = 'Sheet1!A:G';
 
-        function addMarker(data) {
-            const latLng = new google.maps.LatLng(data[1], data[2]);
-            const marker = new google.maps.Marker({
-                position: latLng,
-                map: map,
-                title: data[0]
-            });
-        }
-
-        // Callback function to process data from Google Sheets
-        window.gsheet = function (response) {
-            const rows = response.values;
-            if (rows.length > 1) {
-                rows.forEach((row, index) => {
-                    if (index > 0) addMarker(row); // Skip header
+            gapi.load('client', () => {
+                gapi.client.init({
+                    apiKey: apiKey,
+                    discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+                }).then(() => {
+                    return gapi.client.sheets.spreadsheets.values.get({
+                        spreadsheetId: sheetId,
+                        range: range,
+                    });
+                }).then(response => {
+                    const rows = response.result.values;
+                    if (rows.length > 0) {
+                        rows.forEach((row, index) => {
+                            if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
+                                geocodeAddress(row[0]); // Assume the address is in the first column
+                            }
+                        });
+                    }
+                }, function(response) {
+                    console.error('Error: ' + response.result.error.message);
                 });
-            }
-        };
+            });
+        }
+
+        function geocodeAddress(address) {
+            geocoder.geocode({'address': address}, function(results, status) {
+                if (status === 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    addMarker(results[0].geometry.location, address);
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        function addMarker(location, title) {
+            new google.maps.Marker({
+                position: location,
+                map: map,
+                title: title
+            });
+        }
     </script>
 </body>
 </html>
