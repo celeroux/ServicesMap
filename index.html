@@ -68,11 +68,11 @@
         }
 
         function addMarker(location, title) {
-            new google.maps.Marker({
+            const marker = new google.maps.Marker({
                 position: location,
                 map: map,
-                title: title
-            });
+                title: title // Use the title from column C as the marker's title
+                });
         }
     </script>
 </body>
