@@ -1,73 +1,79 @@
-<script>
-    const categoryColors = {
-        "Emergency Food Services": 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-        "Free Legal Services": 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-        "Open Work Permit Support": 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-        "Counseling Services": 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
-        "Health Services": 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
-    };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Services Map</title>
+    <style>
+        #map {
+            height: 100vh; // Full height of the viewport
+            width: 100%; // Full width of the viewport
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I&callback=initMap" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        let map;
+        let geocoder;
 
-    let map;
-    let geocoder;
-
-    function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: { lat: 45.5116, lng: -66.1194 },
-            zoom: 8
-        });
-        geocoder = new google.maps.Geocoder();
-        loadSheetData();
-    }
-
-    function loadSheetData() {
-        gapi.load('client', () => {
-            gapi.client.init({
-                apiKey: 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I',
-                discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-            }).then(() => {
-                return gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk',
-                    range: 'Sheet1!A:G',
-                });
-            }).then(response => {
-                console.log("Sheet data loaded:", response.result.values); // Log the data fetched
-                const rows = response.result.values;
-                if (rows.length > 0) {
-                    rows.forEach((row, index) => {
-                        if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
-                            const address = row[0];
-                            const title = row[2];
-                            const category = row[1]; // Category in column B
-                            console.log(`Geocoding address [${index}]:`, address, title, category); // Log each address being geocoded
-                            geocodeAddress(address, title, category);
-                        }
-                    });
-                }
-            }, function(response) {
-                console.error('Error loading sheet data:', response.result.error.message);
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 45.5116, lng: -66.1194 }, // Default center of the map
+                zoom: 6 // Default zoom level
             });
-        });
-    }
+            geocoder = new google.maps.Geocoder(); // Initialize the geocoder
+            loadSheetData();
+        }
 
-    function geocodeAddress(address, title, category) {
-        geocoder.geocode({'address': address}, function(results, status) {
-            console.log(`Geocoding result for [${address}]:`, results, status); // Log geocoding results
-            if (status === 'OK') {
-                addMarker(results[0].geometry.location, title, category);
-            } else {
-                console.error('Geocode was not successful for the following reason:', status);
-            }
-        });
-    }
+        function loadSheetData() {
+            const apiKey = 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I';
+            const sheetId = '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk';
+            const range = 'Sheet1!A:G';
 
-    function addMarker(location, title, category) {
-        const markerIcon = categoryColors[category] || 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png'; // Default if category unknown
-        console.log(`Adding marker at:`, location, `for`, title, `with icon`, markerIcon); // Log marker addition
-        const marker = new google.maps.Marker({
-            position: location,
-            map: map,
-            title: title,
-            icon: markerIcon
-        });
-    }
-</script>
+            gapi.load('client', () => {
+                gapi.client.init({
+                    apiKey: apiKey,
+                    discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+                }).then(() => {
+                    return gapi.client.sheets.spreadsheets.values.get({
+                        spreadsheetId: sheetId,
+                        range: range,
+                    });
+                }).then(response => {
+                    const rows = response.result.values;
+                    if (rows.length > 0) {
+                        rows.forEach((row, index) => {
+                            if (index > 0 && row.length >= 3) { // Skip header and ensure data completeness
+                                geocodeAddress(row[0]); // Assume address is fist
+                            }
+                        });
+                    }
+                }, function(response) {
+                    console.error('Error: ' + response.result.error.message);
+                });
+            });
+        }
+
+        function geocodeAddress(address) {
+            geocoder.geocode({'address': address}, function(results, status) {
+                if (status === 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    addMarker(results[0].geometry.location, address);
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        function addMarker(location, title) {
+            const marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                title: title // Use the title from column C as the marker's title
+                });
+        }
+    </script>
+</body>
+</html>
