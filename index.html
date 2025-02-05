@@ -22,11 +22,11 @@
     function loadSheetData() {
         gapi.load('client', () => {
             gapi.client.init({
-                apiKey: 'YOUR_API_KEY',
+                apiKey: 'AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I',
                 discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
             }).then(() => {
                 return gapi.client.sheets.spreadsheets.values.get({
-                    spreadsheetId: 'YOUR_SHEET_ID',
+                    spreadsheetId: '1ghAvyWpBIP7bkzC0lkEFynnjzkI3VrMLYCSmwssgNyk',
                     range: 'Sheet1!A:G',
                 });
             }).then(response => {
