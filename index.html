@@ -8,6 +8,27 @@
       height: 100vh; /* Full height of the viewport */
       width: 100%;   /* Full width of the viewport */
     }
+    /* Legend styling */
+    #legend {
+      background: white;
+      padding: 10px;
+      margin: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    #legend h3 {
+      margin-top: 0;
+    }
+    #legend div {
+      margin-bottom: 5px;
+    }
+    #legend img {
+      vertical-align: middle;
+      height: 20px;
+      width: 20px;
+      margin-right: 8px;
+    }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChrxf8It3o8fAaaAQRI0zsBaEtoVtqt2I&callback=initMap" async defer></script>
   <script src="https://apis.google.com/js/api.js"></script>
@@ -34,11 +55,12 @@
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 45.5116, lng: -66.1194 }, // Default center of the map
-        zoom: 12 // Default zoom level
+        zoom: 8 // Adjusted zoom level for a more detailed view
       });
       geocoder = new google.maps.Geocoder();
       infoWindow = new google.maps.InfoWindow();
       loadSheetData();
+      addLegend();
     }
 
     function loadSheetData() {
@@ -110,12 +132,30 @@
       }
       contentString += `</div>`;
 
-      // Add a click event listener to open the infoWindow and log the click
+      // Add a click event listener to open the infoWindow
       marker.addListener('click', () => {
-        console.log("Marker clicked:", title);
         infoWindow.setContent(contentString);
         infoWindow.open(map, marker);
       });
+    }
+
+    function addLegend() {
+      const legend = document.createElement('div');
+      legend.id = 'legend';
+      legend.innerHTML = '<h3>Legend</h3>';
+      // Loop through categoryIcons to build the legend items
+      for (const category in categoryIcons) {
+        const div = document.createElement('div');
+        div.innerHTML = `<img src="${categoryIcons[category]}"> ${category}`;
+        legend.appendChild(div);
+      }
+      // Optionally, add a default legend item if needed
+      // const defaultDiv = document.createElement('div');
+      // defaultDiv.innerHTML = `<img src="${defaultIconUrl}"> Other`;
+      // legend.appendChild(defaultDiv);
+      
+      // Add the legend to the map controls at a desired position
+      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
     }
   </script>
 </body>
